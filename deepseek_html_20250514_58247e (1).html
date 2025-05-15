@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aventura de Vestir</title>
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #ff7e5f;
+            --accent: #f9cb40;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --success: #28a745;
+            --danger: #dc3545;
+        }
+        
+        body {
+            font-family: 'Comic Neue', cursive, sans-serif;
+            text-align: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            color: var(--dark);
+        }
+        
+        .game-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 30px;
+            border-radius: 20px;
+            background: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+        }
+        
+        h1, h2, h3 {
+            color: var(--primary);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .hidden {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .visible {
+            display: block;
+            animation: fadeInUp 0.5s ease forwards;
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        button, select {
+            padding: 12px 20px;
+            margin: 10px 5px;
+            border: none;
+            border-radius: 50px;
+            background-color: var(--primary);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+            background-color: #3a5a8f;
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        input, select {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 50px;
+            width: 80%;
+            max-width: 400px;
+            font-size: 1rem;
+            margin: 10px 0;
+            transition: border 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        #character-container {
+            margin: 20px auto;
+            position: relative;
+            width: 300px;
+            height: 400px;
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        #character {
+            max-width: 200px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+        
+        .clothing-item {
+            position: absolute;
+            z-index: 2;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        #head-wear {
+            top: 20px;
+            width: 180px;
+        }
+        
+        #body-wear {
+            top: 150px;
+            width: 200px;
+        }
+        
+        #accessory {
+            top: 100px;
+            width: 150px;
+        }
+        
+        .clothing-options {
+            display: flex;
+            overflow-x: auto;
+            padding: 15px 0;
+            margin: 20px 0;
+            background-color: #f1f3f5;
+            border-radius: 15px;
+            scrollbar-width: thin;
+        }
+        
+        .clothing-option {
+            flex: 0 0 auto;
+            margin: 0 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .clothing-option:hover {
+            transform: scale(1.05);
+        }
+        
+        .clothing-option img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            background-color: white;
+            border-radius: 10px;
+            padding: 5px;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.1);
+            border: 2px solid transparent;
+        }
+        
+        .clothing-option.selected img {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(74, 111, 165, 0.5);
+        }
+        
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: all 0.5s;
+        }
+        
+        .success {
+            background-color: rgba(40, 167, 69, 0.2);
+            color: var(--success);
+            border: 2px solid var(--success);
+        }
+        
+        .error {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: var(--danger);
+            border: 2px solid var(--danger);
+        }
+        
+        .difficulty-btn {
+            min-width: 120px;
+        }
+        
+        .selected {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .next-btn {
+            background-color: var(--accent);
+            color: var(--dark);
+            padding: 12px 30px;
+            font-size: 1.1rem;
+        }
+        
+        .welcome-message {
+            font-size: 1.3rem;
+            color: var(--secondary);
+            margin-bottom: 20px;
+        }
+        
+        .difficulty-display {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 50px;
+            background-color: var(--light);
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 30px;
+        }
+        
+        .section-title::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 3px;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Paso 1: Selección de nombre y dificultad -->
+        <div class="visible" id="startStep">
+            <h1><i class="fas fa-tshirt"></i> Aventura de Vestir</h1>
+            <p class="welcome-message">¡Prepárate para una emocionante aventura de moda alrededor del mundo!</p>
+            
+            <div style="margin: 30px 0;">
+                <label for="playerName">
+                    <h3><i class="fas fa-user"></i> Elige un nombre adecuado</h3>
+                </label>
+                <input type="text" id="playerName" placeholder="Ej: Estilista Viajero" required>
+            </div>
+            
+            <h3><i class="fas fa-signal"></i> Selecciona el nivel de dificultad</h3>
+            <div style="margin: 20px 0;">
+                <button class="difficulty-btn" onclick="setDifficulty('easy')">
+                    <i class="fas fa-smile"></i> Fácil
+                </button>
+                <button class="difficulty-btn" onclick="setDifficulty('medium')">
+                    <i class="fas fa-meh"></i> Medio
+                </button>
+                <button class="difficulty-btn" onclick="setDifficulty('hard')">
+                    <i class="fas fa-frown"></i> Difícil
+                </button>
+            </div>
+            
+            <button class="next-btn" onclick="nextStep()">
+                Siguiente <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+        
+        <!-- Paso 2: Selección de ciudad -->
+        <div class="hidden" id="selectionStep">
+            <h2 class="section-title">Elige tu destino</h2>
+            <div class="welcome-message" id="displayName"></div>
+            <div class="difficulty-display" id="displayDifficulty"></div>
+            
+            <select id="city" required>
+                <option value="">-- Selecciona un destino --</option>
+                <option value="manhattan">🗽 Manhattan (Nueva York)</option>
+                <option value="galapagos">🐢 Islas Galápagos (Ecuador)</option>
+                <option value="cancun">🏖️ Cancún (México)</option>
+                <option value="medellin">☕ Medellín (Colombia)</option>
+                <option value="paris">🗼 París (Francia)</option>
+                <option value="moscu">❄️ Moscú (Rusia)</option>
+            </select>
+            
+            <br><br>
+            <button onclick="startGame()">
+                <i class="fas fa-play"></i> Comenzar Aventura
+            </button>
+        </div>
+        
+        <!-- Paso 3: Juego de vestir -->
+        <div class="hidden" id="gameStep">
+            <h2 class="section-title">Viste a tu personaje</h2>
+            <div class="welcome-message">
+                Destino: <span id="displayCity"></span>
+            </div>
+            
+            <div id="character-container">
+                <img id="character" src="https://us.123rf.com/450wm/alexutemov/alexutemov1603/alexutemov160300271/53326766-ilustraci%C3%B3n-desnuda-vector-ni%C3%B1o-aislado-en-el-fondo-blanco-retrato-del-ni%C3%B1o-desnudo-ni%C3%B1o-de-dibujos-.jpg" alt="Personaje">
+                <img id="head-wear" class="clothing-item hidden" src="" alt="Cabeza">
+                <img id="body-wear" class="clothing-item hidden" src="" alt="Cuerpo">
+                <img id="accessory" class="clothing-item hidden" src="" alt="Accesorio">
+            </div>
+            
+            <h3><i class="fas fa-tshirt"></i> Prendas para la cabeza</h3>
+            <div class="clothing-options" id="head-options"></div>
+            
+            <h3><i class="fas fa-tshirt"></i> Prendas para el cuerpo</h3>
+            <div class="clothing-options" id="body-options"></div>
+            
+            <h3><i class="fas fa-glasses"></i> Accesorios</h3>
+            <div class="clothing-options" id="accessory-options"></div>
+            
+            <button onclick="checkOutfit()" style="margin-top: 20px;">
+                <i class="fas fa-check"></i> Verificar Vestimenta
+            </button>
+            
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Configuraciones del juego
+        const gameConfig = {
+            player: {
+                name: '',
+                difficulty: '',
+                city: ''
+            },
+            
+            cityRequirements: {
+                manhattan: { 
+                    head: "gorra_beisbol", 
+                    body: "chaqueta", 
+                    accessory: "gafas" 
+                },
+                galapagos: { 
+                    head: "sombrero_sol", 
+                    body: "camiseta", 
+                    accessory: "protector_solar" 
+                },
+                cancun: { 
+                    head: "sombrero_palma", 
+                    body: "camiseta_manga_corta", 
+                    accessory: "gafas_sol" 
+                },
+                medellin: { 
+                    head: "sombrero_antioqueno", 
+                    body: "poncho_paisa", 
+                    accessory: "carriel" 
+                },
+                paris: { 
+                    head: "boina", 
+                    body: "abrigo_elegante", 
+                    accessory: "bufanda" 
+                },
+                moscu: { 
+                    head: "ushanka", 
+                    body: "abrigo_invierno", 
+                    accessory: "guantes" 
+                }
+            },
+            
+            clothingItems: {
+                head: [
+                    { id: "gorra_beisbol", src: "https://us.123rf.com/450wm/anatolir/anatolir1808/anatolir180804252/105746841-gorra-de-b%C3%A9isbol-en-el-icono-frontal-estilo-plano.jpg" },
+                    { id: "sombrero_sol", src: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfJwWj8PeKeVTBOuTSJ-76_4WMrNayVyAvaw&s" },
+                    { id: "sombrero_palma", src: "https://media.istockphoto.com/id/1481286529/es/vector/studio-pc-2316-la-fiesta-de-junio.jpg" },
+                    { id: "sombrero_antioqueno", src: "https://i.pinimg.com/originals/79/68/70/79687092fea49d54d1bc49ec5247aa6c.jpg" },
+                    { id: "boina", src: "https://st3.depositphotos.com/4211323/17185/v/450/depositphotos_171853084-stock-illustration-mime-black-beret-isolated-mimic.jpg" },
+                    { id: "ushanka", src: "https://media.istockphoto.com/id/695104068/es/vector/ushanka-icono-en-estilo-de-dibujos-animados-aislado-sobre-fondo-blanco-ilustraci%C3%B3n-de-vector.jpg" }
+                ],
+                
+                body: [
+                    { id: "chaqueta", src: "https://cdn-icons-png.flaticon.com/512/3048/3048135.png" },
+                    { id: "camiseta", src: "https://cdn-icons-png.flaticon.com/512/3048/3048137.png" },
+                    { id: "camiseta_manga_corta", src: "https://cdn-icons-png.flaticon.com/512/3048/3048139.png" },
+                    { id: "poncho_paisa", src: "https://www.shutterstock.com/image-vector/colombian-poncho-illustration-vector-isolated-260nw-2378563227.jpg" },
+                    { id: "abrigo_elegante", src: "https://cdn-icons-png.flaticon.com/512/3048/3048143.png" },
+                    { id: "abrigo_invierno", src: "https://cdn-icons-png.flaticon.com/512/3048/3048145.png" }
+                ],
+                
+                accessory: [
+                    { id: "gafas", src: "https://cdn-icons-png.flaticon.com/512/3048/3048151.png" },
+                    { id: "protector_solar", src: "https://cdn-icons-png.flaticon.com/512/3048/3048153.png" },
+                    { id: "gafas_sol", src: "https://static.vecteezy.com/system/resources/previews/004/557/603/non_2x/sun-glasses-cartoon-object-vector.jpg" },
+                    { id: "carriel", src: "https://artesaniasdecolombia.com.co/Documentos/Catalogo/2600_carriel_g.png" },
+                    { id: "bufanda", src: "https://cdn-icons-png.flaticon.com/512/3048/3048159.png" },
+                    { id: "guantes", src: "https://cdn-icons-png.flaticon.com/512/3048/3048161.png" }
+                ]
+            },
+            
+            selectedItems: {
+                head: null,
+                body: null,
+                accessory: null
+            }
+        };
+
+        // Elementos del DOM
+        const DOM = {
+            startStep: document.getElementById("startStep"),
+            selectionStep: document.getElementById("selectionStep"),
+            gameStep: document.getElementById("gameStep"),
+            playerName: document.getElementById("playerName"),
+            citySelect: document.getElementById("city"),
+            resultDiv: document.getElementById("result"),
+            displayName: document.getElementById("displayName"),
+            displayDifficulty: document.getElementById("displayDifficulty"),
+            displayCity: document.getElementById("displayCity"),
+            headOptions: document.getElementById("head-options"),
+            bodyOptions: document.getElementById("body-options"),
+            accessoryOptions: document.getElementById("accessory-options"),
+            headWear: document.getElementById("head-wear"),
+            bodyWear: document.getElementById("body-wear"),
+            accessoryItem: document.getElementById("accessory")
+        };
+
+        // Inicialización del juego
+        function init() {
+            // Configurar botones de dificultad
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.difficulty-btn').forEach(b => 
+                        b.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+            
+            // Cargar opciones de ropa
+            loadClothingOptions();
+        }
+
+        // Cargar opciones de vestimenta
+        function loadClothingOptions() {
+            // Cargar opciones para la cabeza
+            gameConfig.clothingItems.head.forEach(item => {
+                DOM.headOptions.innerHTML += `
+                    <div class="clothing-option" onclick="selectClothing('head', '${item.id}')">
+                        <img src="${item.src}" alt="Prenda para cabeza">
+                    </div>
+                `;
+            });
+            
+            // Cargar opciones para el cuerpo
+            gameConfig.clothingItems.body.forEach(item => {
+                DOM.bodyOptions.innerHTML += `
+                    <div class="clothing-option" onclick="selectClothing('body', '${item.id}')">
+                        <img src="${item.src}" alt="Prenda para cuerpo">
+                    </div>
+                `;
+            });
+            
+            // Cargar accesorios
+            gameConfig.clothingItems.accessory.forEach(item => {
+                DOM.accessoryOptions.innerHTML += `
+                    <div class="clothing-option" onclick="selectClothing('accessory', '${item.id}')">
+                        <img src="${item.src}" alt="Accesorio">
+                    </div>
+                `;
+            });
+        }
+
+        // Seleccionar prenda
+        function selectClothing(type, itemId) {
+            // Deseleccionar todas las opciones de este tipo
+            document.querySelectorAll(`#${type}-options .clothing-option`).forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Seleccionar la opción clickeada
+            event.currentTarget.classList.add('selected');
+            
+            // Guardar selección
+            gameConfig.selectedItems[type] = itemId;
+            
+            // Mostrar prenda en el personaje
+            const item = gameConfig.clothingItems[type].find(i => i.id === itemId);
+            const imgElement = DOM[`${type}Wear`];
+            
+            imgElement.src = item.src;
+            imgElement.classList.remove('hidden');
+        }
+
+        // Establecer dificultad
+        function setDifficulty(level) {
+            gameConfig.player.difficulty = level;
+        }
+
+        // Siguiente paso
+        function nextStep() {
+            const name = DOM.playerName.value.trim();
+            
+            if (!gameConfig.player.difficulty) {
+                alert("Por favor, selecciona un nivel de dificultad.");
+                return;
+            }
+            
+            if (!name) {
+                alert("Por favor, ingresa tu nombre.");
+                return;
+            }
+            
+            gameConfig.player.name = name;
+            
+            // Actualizar pantalla
+            DOM.displayName.textContent = `¡Hola, ${name}!`;
+            DOM.displayDifficulty.textContent = `Nivel: ${getDifficultyName(gameConfig.player.difficulty)}`;
+            
+            toggleStep(DOM.startStep, DOM.selectionStep);
+        }
+
+        // Obtener nombre de dificultad
+        function getDifficultyName(level) {
+            const names = {
+                easy: "Fácil",
+                medium: "Medio",
+                hard: "Difícil"
+            };
+            return names[level];
+        }
+
+        // Comenzar juego
+        function startGame() {
+            const city = DOM.citySelect.value;
+            
+            if (!city) {
+                alert("Por favor, selecciona una ciudad.");
+                return;
+            }
+            
+            gameConfig.player.city = city;
+            
+            // Actualizar pantalla
+            const cityName = DOM.citySelect.options[DOM.citySelect.selectedIndex].text;
+            DOM.displayCity.textContent = cityName;
+            
+            toggleStep(DOM.selectionStep, DOM.gameStep);
+        }
+
+        // Verificar vestimenta
+        function checkOutfit() {
+            if (!gameConfig.player.city) {
+                showResult("¡Selecciona una ciudad primero!", "error");
+                return;
+            }
+            
+            const requirements = gameConfig.cityRequirements[gameConfig.player.city];
+            let correctItems = 0;
+            let feedback = "";
+            
+            // Verificar cada tipo de prenda
+            for (const type in requirements) {
+                if (gameConfig.selectedItems[type] === requirements[type]) {
+                    correctItems++;
+                } else {
+                    feedback += `La prenda seleccionada para ${type === 'head' ? 'la cabeza' : type === 'body' ? 'el cuerpo' : 'accesorios'} no es la correcta. `;
+                }
+            }
+            
+            // Mostrar resultado
+            if (correctItems === 3) {
+                showResult(`¡Perfecto! Estás listo para visitar ${DOM.citySelect.options[DOM.citySelect.selectedIndex].text}`, "success");
+            } else {
+                showResult(`¡Vestimenta incorrecta! ${feedback}`, "error");
+            }
+        }
+
+        // Mostrar resultado
+        function showResult(message, type) {
+            DOM.resultDiv.textContent = message;
+            DOM.resultDiv.className = type;
+        }
+
+        // Cambiar entre pasos
+        function toggleStep(hide, show) {
+            hide.classList.remove('visible');
+            hide.classList.add('hidden');
+            
+            setTimeout(() => {
+                show.classList.remove('hidden');
+                show.classList.add('visible');
+            }, 300);
+        }
+
+        // Inicializar el juego cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
